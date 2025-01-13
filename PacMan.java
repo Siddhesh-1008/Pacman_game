@@ -4,11 +4,17 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Image;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.util.HashSet;
+import javax.swing.Timer;
+
 import javax.swing.ImageIcon;
 import javax.swing.JPanel;
 
-public class PacMan extends JPanel {
+public class PacMan extends JPanel implements ActionListener, KeyListener {
 
     //BLOCK CLASS FOR HASHSET
     class Block {
@@ -22,6 +28,12 @@ public class PacMan extends JPanel {
         int startX;
         int startY;
 
+        //BASICALLY PACMAN MOVING DIRECTIONS
+        //HERE DIRECTION CAN BE U D L R BASED ON THE KEYEVENT LISTENER WE UPDATE THE DIRECTIONS
+        char direction = 'U';
+        int vleocityX = 0;
+        int velocityY = 0;
+
         //CONSTRUCTOR
         Block(Image image, int x, int y, int width, int height) {
             this.image = image;
@@ -33,6 +45,33 @@ public class PacMan extends JPanel {
             this.startX = x;
             this.startY = y;
         }
+
+        //to move the pacmam positions
+        void updateDirection(char direction) {
+            this.direction = direction;
+            updateVelocity();
+        }
+
+        //UPPER -Y
+        void updateVelocity() {
+            if (this.direction == 'U') {
+                this.vleocityX = 0;
+                this.velocityY = -tileSize / 4;
+            } //DOWN +Y
+            else if (this.direction == 'D') {
+                this.vleocityX = 0;
+                this.velocityY = tileSize / 4;
+            } //LEFT -X
+            else if (this.direction == 'L') {
+                this.vleocityX = -tileSize / 4;
+                this.velocityY = 0;
+            } //RIGHT +X
+            else if (this.direction == 'R') {
+                this.vleocityX = tileSize / 4;
+                this.velocityY = 0;
+            }
+        }
+
     }
 
     private int rowCount = 21;
@@ -41,7 +80,7 @@ public class PacMan extends JPanel {
     private int boardWidth = columnCount * tileSize;
     private int boardHeight = rowCount * tileSize;
 
-    //STORE IMAGESS
+    //STORE IMAGES
     private Image wallImage;
     private Image blueGhostImage;
     private Image orangeGhostImage;
@@ -94,10 +133,17 @@ public class PacMan extends JPanel {
     HashSet<Block> ghosts;
     Block pacman;
 
+    Timer gameLoop;
+
     // Constructor
     PacMan() {
         setPreferredSize(new Dimension(boardWidth, boardHeight));
         setBackground(Color.BLACK);
+
+        ////FOR KEY EVENT LISTENERS
+        //this refers to pacman object and it listens key presses and process thrree functions such as release,pressed that are defined below
+        addKeyListener(this);
+        setFocusable(true);
 
         //load all images from src folder
         wallImage = new ImageIcon(getClass().getResource("./wall.png")).getImage();
@@ -112,6 +158,11 @@ public class PacMan extends JPanel {
         pacmanRightImage = new ImageIcon(getClass().getResource("./pacmanRight.png")).getImage();
 
         loadMap();
+
+        //SETTIN G  A GAME LOOP  TIMER THAT REPAINT UR WHOLE UI AT EACH 50 MILLI SECOND
+        gameLoop = new Timer(50, this);
+        gameLoop.start();
+
         //TOTAL WALLS FOODS AND GHOSTS ON TILE MAP
         System.out.println(walls.size());
         System.out.println(foods.size());
@@ -186,22 +237,59 @@ public class PacMan extends JPanel {
         //PACMAN
         g.drawImage(pacman.image, pacman.x, pacman.y, pacman.width, pacman.height, null);
 
-      
         //GHOST HASHSET OBJECT CONTAIN N OBJECT OF ghost 
         //WALLS HASHSET OBJECT CONTAINS N OBJECT OF walls
         //FOODS HASHSET OBJECT CONTAINS N OBJECT OF foods
         for (Block ghost : ghosts) {
-          g.drawImage(ghost.image, ghost.x, ghost.y, ghost.width, ghost.height, null);
+            g.drawImage(ghost.image, ghost.x, ghost.y, ghost.width, ghost.height, null);
         }
-
 
         for (Block wall : walls) {
-          g.drawImage(wall.image, wall.x, wall.y, wall.width, wall.height, null);
+            g.drawImage(wall.image, wall.x, wall.y, wall.width, wall.height, null);
         }
 
-
         for (Block food : foods) {
-          g.drawImage(food.image, food.x, food.y, food.width, food.height, null);
+            g.drawImage(food.image, food.x, food.y, food.width, food.height, null);
+        }
+    }
+
+    //NOW UPDATE THE POSTIONS OF PACMAN OR MOVE IT
+    //THIS FUNCTION IS CALLED WHENEVER 
+    public void move() {
+        pacman.x += pacman.vleocityX;
+        pacman.y += pacman.velocityY;
+    }
+
+    //LOGIC OF GAME 
+    //REPAINTING THE UI
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        move();
+        repaint();
+    }
+
+    @Override
+    public void keyTyped(KeyEvent e) {
+
+    }
+
+    @Override
+    public void keyPressed(KeyEvent e) {
+
+    }
+
+    //when u click on UP,DOWN,LEFT,RIGHTkey it will update velocity which will help to update the postions(x,y) of pacman 
+    @Override
+    public void keyReleased(KeyEvent e) {
+        System.out.println("KEY EVENT: " + e.getKeyCode());
+        if (e.getKeyCode() == KeyEvent.VK_UP) {
+            pacman.updateDirection('U');
+        } else if (e.getKeyCode() == KeyEvent.VK_DOWN) {
+            pacman.updateDirection('D');
+        } else if (e.getKeyCode() == KeyEvent.VK_LEFT) {
+            pacman.updateDirection('L');
+        } else if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
+            pacman.updateDirection('R');
         }
     }
 
