@@ -24,6 +24,8 @@ public class App {
         PacMan pacmanGame = new PacMan();
         frame.add(pacmanGame);
         frame.pack();
+        //FOR KEY EVENT LISTENERS
+        pacmanGame.requestFocus();
         frame.setVisible(true);
 
     }

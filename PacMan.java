@@ -31,7 +31,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         //BASICALLY PACMAN MOVING DIRECTIONS
         //HERE DIRECTION CAN BE U D L R BASED ON THE KEYEVENT LISTENER WE UPDATE THE DIRECTIONS
         char direction = 'U';
-        int vleocityX = 0;
+        int velocityX = 0;
         int velocityY = 0;
 
         //CONSTRUCTOR
@@ -48,26 +48,41 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
 
         //to move the pacmam positions
         void updateDirection(char direction) {
+            //PACMAN WILL MOVE IN LEFT RIGHT UP DOWN DIRECTION ONLY WHEN IT CAN ABLE TO MOVE IF THERE IS A WALL ON LEFT THEN PACMAN CANT MOVE IN LEFT SIDE 
+            char prevDirection = this.direction;
             this.direction = direction;
             updateVelocity();
+
+            //DONT ALLOW GHOST OR PACMAN TO COLLIDE WITH WALL 
+            this.x += this.velocityX;
+            this.y += this.velocityY;
+            for (Block wall : walls) {
+                if (collision(this, wall)) {
+                    this.x -= this.velocityX;
+                    this.y -= this.velocityY;
+                    this.direction = prevDirection;
+                    updateVelocity();
+                }
+            }
+
         }
 
         //UPPER -Y
         void updateVelocity() {
             if (this.direction == 'U') {
-                this.vleocityX = 0;
+                this.velocityX = 0;
                 this.velocityY = -tileSize / 4;
             } //DOWN +Y
             else if (this.direction == 'D') {
-                this.vleocityX = 0;
+                this.velocityX = 0;
                 this.velocityY = tileSize / 4;
             } //LEFT -X
             else if (this.direction == 'L') {
-                this.vleocityX = -tileSize / 4;
+                this.velocityX = -tileSize / 4;
                 this.velocityY = 0;
             } //RIGHT +X
             else if (this.direction == 'R') {
-                this.vleocityX = tileSize / 4;
+                this.velocityX = tileSize / 4;
                 this.velocityY = 0;
             }
         }
@@ -248,16 +263,36 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
             g.drawImage(wall.image, wall.x, wall.y, wall.width, wall.height, null);
         }
 
+        g.setColor(Color.WHITE);
         for (Block food : foods) {
-            g.drawImage(food.image, food.x, food.y, food.width, food.height, null);
+            g.fillRect(food.x, food.y, food.width, food.height);
         }
     }
 
     //NOW UPDATE THE POSTIONS OF PACMAN OR MOVE IT
     //THIS FUNCTION IS CALLED WHENEVER 
     public void move() {
-        pacman.x += pacman.vleocityX;
+        pacman.x += pacman.velocityX;
         pacman.y += pacman.velocityY;
+
+        //CHECK WALL COLISIONS
+        for (Block wall : walls) {
+            if (collision(pacman, wall)) {
+                pacman.x -= pacman.velocityX;
+                pacman.y -= pacman.velocityY;
+                break;
+            }
+        }
+
+    }
+
+    //COLLISIONS OF GHOST AND WALL WITH PACMAN
+    //COLLISION FORMULA
+    public boolean collision(Block a, Block b) {
+        return a.x < b.x + b.width
+                && a.x + a.width > b.x
+                && a.y < b.y + b.height
+                && a.y + a.height > b.y;
     }
 
     //LOGIC OF GAME 
